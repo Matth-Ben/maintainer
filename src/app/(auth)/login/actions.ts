@@ -21,7 +21,7 @@ export async function loginAction(_: LoginState, formData: FormData): Promise<Lo
 
   const parsed = loginSchema.safeParse(raw);
   if (!parsed.success) {
-    return { error: parsed.error.errors[0].message };
+    return { error: parsed.error.issues[0].message };
   }
 
   const supabase = await createClient();

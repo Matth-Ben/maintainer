@@ -1,6 +1,10 @@
 import { differenceInDays } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
-import type { MaintenanceUrgency, ProjectWithUrgency } from "@/types";
+import type { Database } from "@/types/database";
+import type { MaintenanceUrgency, ProjectWithUrgency, Profile } from "@/types";
+
+type ProjectRow = Database["public"]["Tables"]["projects"]["Row"];
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 function computeUrgency(
   maint_end_date: string | null,
@@ -17,21 +21,34 @@ function computeUrgency(
 
 const URGENCY_ORDER: MaintenanceUrgency[] = ["expired", "critical", "warning", "caution", "ok", "none"];
 
+function mergeProjectWithDev(project: ProjectRow, profilesMap: Map<string, ProfileRow>): ProjectWithUrgency {
+  const { urgency, daysRemaining } = computeUrgency(project.maint_end_date, project.has_maintenance);
+  const devRow = profilesMap.get(project.dev_id);
+  const dev: Profile = devRow
+    ? { id: devRow.id, full_name: devRow.full_name, role: devRow.role }
+    : { id: project.dev_id, full_name: "Inconnu", role: "user" };
+  return { ...project, urgency, daysRemaining, dev };
+}
+
+async function fetchProfilesMap(supabase: Awaited<ReturnType<typeof createClient>>): Promise<Map<string, ProfileRow>> {
+  const { data } = await supabase.from("profiles").select("*") as { data: ProfileRow[] | null; error: unknown };
+  const map = new Map<string, ProfileRow>();
+  for (const p of data ?? []) map.set(p.id, p);
+  return map;
+}
+
 export async function getProjects(): Promise<ProjectWithUrgency[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("projects")
-    .select("*, dev:profiles(*)")
-    .order("created_at", { ascending: false });
+  const [{ data: projects, error }, profilesMap] = await Promise.all([
+    supabase.from("projects").select("*").order("created_at", { ascending: false }),
+    fetchProfilesMap(supabase),
+  ]);
 
   if (error) throw new Error(error.message);
 
-  return (data ?? [])
-    .map((p) => {
-      const { urgency, daysRemaining } = computeUrgency(p.maint_end_date, p.has_maintenance);
-      return { ...p, urgency, daysRemaining, dev: p.dev } as ProjectWithUrgency;
-    })
+  return (projects ?? [])
+    .map((p) => mergeProjectWithDev(p, profilesMap))
     .sort((a, b) => {
       const diff = URGENCY_ORDER.indexOf(a.urgency) - URGENCY_ORDER.indexOf(b.urgency);
       if (diff !== 0) return diff;
@@ -43,16 +60,13 @@ export async function getProjects(): Promise<ProjectWithUrgency[]> {
 export async function getProject(id: string): Promise<ProjectWithUrgency | null> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("projects")
-    .select("*, dev:profiles(*)")
-    .eq("id", id)
-    .single();
+  const [{ data: project, error }, profilesMap] = await Promise.all([
+    supabase.from("projects").select("*").eq("id", id).single(),
+    fetchProfilesMap(supabase),
+  ]);
 
-  if (error || !data) return null;
-
-  const { urgency, daysRemaining } = computeUrgency(data.maint_end_date, data.has_maintenance);
-  return { ...data, urgency, daysRemaining, dev: data.dev } as ProjectWithUrgency;
+  if (error || !project) return null;
+  return mergeProjectWithDev(project, profilesMap);
 }
 
 export async function getDashboardStats() {

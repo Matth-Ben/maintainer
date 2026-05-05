@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
+import path from "path";
+
+const PROJECT_ROOT = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   turbopack: {
-    root: process.cwd(),
+    root: PROJECT_ROOT,
   },
 };
 
