@@ -1,3 +1,4 @@
+import { getCurrentProfile } from "@/services/profiles";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,13 +8,12 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Key, Database, Bell, User } from "lucide-react";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const profile = await getCurrentProfile();
+
   return (
     <div>
-      <PageHeader
-        title="Paramètres"
-        description="Configuration de l'application et des intégrations."
-      />
+      <PageHeader title="Paramètres" description="Configuration de l'application et des intégrations." />
 
       <div className="space-y-4 max-w-2xl">
         <Card>
@@ -27,11 +27,11 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="full_name" className="text-xs">Nom complet</Label>
-              <Input id="full_name" defaultValue="Martin Benoit" />
+              <Input id="full_name" defaultValue={profile?.full_name ?? ""} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email" className="text-xs">Email</Label>
-              <Input id="email" type="email" defaultValue="martin@agence.fr" disabled />
+              <Label className="text-xs">Rôle</Label>
+              <Badge variant="secondary" className="w-fit capitalize">{profile?.role ?? "—"}</Badge>
             </div>
             <Button size="sm" disabled>Enregistrer</Button>
           </CardContent>
@@ -66,15 +66,13 @@ export default function SettingsPage() {
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Database className="w-4 h-4 text-muted-foreground" />
               Supabase
-              <Badge variant="secondary" className="text-xs ml-auto">Non configuré</Badge>
+              <Badge variant="default" className="text-xs ml-auto">Connecté</Badge>
             </CardTitle>
-            <CardDescription className="text-xs">
-              Base de données et authentification.
-            </CardDescription>
+            <CardDescription className="text-xs">Base de données et authentification.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             <div className="rounded-md bg-muted p-3 text-xs text-muted-foreground space-y-1">
-              <p>La configuration Supabase se fait via les variables d'environnement :</p>
+              <p>Configuré via les variables d'environnement :</p>
               <code className="block font-mono mt-2">NEXT_PUBLIC_SUPABASE_URL</code>
               <code className="block font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
             </div>
@@ -87,13 +85,10 @@ export default function SettingsPage() {
               <Bell className="w-4 h-4 text-muted-foreground" />
               Notifications
             </CardTitle>
-            <CardDescription className="text-xs">
-              Rappels automatiques pour les fins de contrat.
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-xs text-muted-foreground space-y-2">
-              <p>Les alertes sont envoyées automatiquement via la Edge Function Supabase :</p>
+              <p>Alertes automatiques via Edge Function Supabase (cron quotidien) :</p>
               <ul className="list-disc list-inside space-y-1 pl-2">
                 <li><strong>J-30</strong> — Rappel anticipé</li>
                 <li><strong>J-15</strong> — Alerte standard</li>

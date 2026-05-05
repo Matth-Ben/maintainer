@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { getMockProjectsWithUrgency, MOCK_CLOCKIFY_DATA } from "@/lib/mock-data";
+import { getProject } from "@/services/projects";
 import { MaintenanceBadge } from "@/components/maintenance-badge";
 import { ClockifyWidget } from "@/components/clockify-widget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,14 +22,9 @@ interface PageProps {
 
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const projects = getMockProjectsWithUrgency();
-  const project = projects.find((p) => p.id === id);
+  const project = await getProject(id);
 
   if (!project) notFound();
-
-  const clockifyData = project.clockify_project_id
-    ? MOCK_CLOCKIFY_DATA[project.clockify_project_id]
-    : null;
 
   const devInitials = project.dev.full_name
     .split(" ")
@@ -94,12 +89,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 icon={GitBranch}
                 label="Repository"
                 value={
-                  <a
-                    href={project.git_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline flex items-center gap-1"
-                  >
+                  <a href={project.git_url} target="_blank" rel="noopener noreferrer"
+                    className="text-primary hover:underline flex items-center gap-1">
                     {project.git_url.replace("https://github.com/", "")}
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -115,25 +106,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             <CardContent className="space-y-3">
               <InfoRow icon={User} label="Nom" value={project.client_contact.name} />
               <Separator />
-              <InfoRow
-                icon={Mail}
-                label="Email"
-                value={
-                  <a href={`mailto:${project.client_contact.email}`} className="text-primary hover:underline">
-                    {project.client_contact.email}
-                  </a>
-                }
-              />
+              <InfoRow icon={Mail} label="Email"
+                value={<a href={`mailto:${project.client_contact.email}`} className="text-primary hover:underline">{project.client_contact.email}</a>} />
               <Separator />
-              <InfoRow
-                icon={Phone}
-                label="Téléphone"
-                value={
-                  <a href={`tel:${project.client_contact.phone}`} className="hover:underline">
-                    {project.client_contact.phone}
-                  </a>
-                }
-              />
+              <InfoRow icon={Phone} label="Téléphone"
+                value={<a href={`tel:${project.client_contact.phone}`} className="hover:underline">{project.client_contact.phone}</a>} />
             </CardContent>
           </Card>
 
@@ -151,19 +128,14 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               {project.launch_date && (
                 <>
                   <Separator />
-                  <InfoRow
-                    icon={Calendar}
-                    label="Mise en ligne"
-                    value={format(new Date(project.launch_date), "d MMMM yyyy", { locale: fr })}
-                  />
+                  <InfoRow icon={Calendar} label="Mise en ligne"
+                    value={format(new Date(project.launch_date), "d MMMM yyyy", { locale: fr })} />
                 </>
               )}
               {project.maint_end_date && (
                 <>
                   <Separator />
-                  <InfoRow
-                    icon={Clock}
-                    label="Fin contrat"
+                  <InfoRow icon={Clock} label="Fin contrat"
                     value={
                       <span className="flex items-center gap-2">
                         {format(new Date(project.maint_end_date), "d MMMM yyyy", { locale: fr })}
@@ -178,16 +150,19 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </div>
 
         <div className="space-y-4">
-          {clockifyData ? (
-            <ClockifyWidget data={clockifyData} />
+          {project.clockify_project_id ? (
+            <Card>
+              <CardContent className="p-5 text-center">
+                <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Clockify bientôt disponible</p>
+              </CardContent>
+            </Card>
           ) : (
             <Card>
               <CardContent className="p-5 text-center">
                 <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">Aucun projet Clockify lié</p>
-                <Button variant="outline" size="sm" className="mt-3">
-                  Lier un projet
-                </Button>
+                <Button variant="outline" size="sm" className="mt-3">Lier un projet</Button>
               </CardContent>
             </Card>
           )}
@@ -216,15 +191,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   );
 }
 
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: React.ReactNode;
-}) {
+function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3">
       <div className="flex items-center gap-2 w-32 shrink-0">

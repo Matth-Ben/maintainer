@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/sidebar";
-import { MobileNav } from "@/components/layout/mobile-nav";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
@@ -12,16 +10,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className="h-full antialiased">
-      <body className="min-h-full flex">
-        <TooltipProvider>
-          <Sidebar />
-          <div className="flex-1 flex flex-col min-w-0">
-            <main className="flex-1 overflow-auto p-4 pb-20 md:p-6 md:pb-6">
-              {children}
-            </main>
-          </div>
-          <MobileNav />
-        </TooltipProvider>
+      <body className="min-h-full bg-background text-foreground">
+        <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
   );

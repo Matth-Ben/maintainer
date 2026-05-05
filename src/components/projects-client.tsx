@@ -1,14 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Plus, Filter } from "lucide-react";
-import { getMockProjectsWithUrgency } from "@/lib/mock-data";
-import { PageHeader } from "@/components/layout/page-header";
-import { ProjectCard } from "@/components/project-card";
+import { Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import type { MaintenanceUrgency } from "@/types";
+import { ProjectCard } from "@/components/project-card";
+import type { ProjectWithUrgency } from "@/types";
 
 type FilterStatus = "all" | "maintenance" | "dev" | "critical" | "no-maintenance";
 
@@ -20,13 +16,16 @@ const FILTER_OPTIONS: { value: FilterStatus; label: string }[] = [
   { value: "no-maintenance", label: "Sans contrat" },
 ];
 
-export default function ProjectsPage() {
-  const allProjects = getMockProjectsWithUrgency();
+interface ProjectsClientProps {
+  projects: ProjectWithUrgency[];
+}
+
+export function ProjectsClient({ projects }: ProjectsClientProps) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
 
   const filtered = useMemo(() => {
-    return allProjects.filter((p) => {
+    return projects.filter((p) => {
       const matchSearch =
         !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -42,21 +41,10 @@ export default function ProjectsPage() {
 
       return matchSearch && matchFilter;
     });
-  }, [allProjects, search, activeFilter]);
+  }, [projects, search, activeFilter]);
 
   return (
-    <div>
-      <PageHeader
-        title="Projets"
-        description={`${allProjects.length} projets au total`}
-        action={
-          <Button size="sm" className="gap-1.5">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nouveau projet</span>
-          </Button>
-        }
-      />
-
+    <>
       <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -96,6 +84,6 @@ export default function ProjectsPage() {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

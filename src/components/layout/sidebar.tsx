@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, FolderKanban, Settings, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type { Profile } from "@/types";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -12,8 +13,18 @@ const NAV_ITEMS = [
   { href: "/settings", label: "Paramètres", icon: Settings },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  profile: Profile | null;
+}
+
+export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
+
+  const initials = profile?.full_name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase() ?? "?";
 
   return (
     <aside className="hidden md:flex flex-col w-64 min-h-screen border-r bg-sidebar border-sidebar-border shrink-0">
@@ -48,11 +59,17 @@ export function Sidebar() {
       <div className="px-3 py-4 border-t border-sidebar-border">
         <div className="flex items-center gap-3 px-3 py-2 rounded-md">
           <Avatar className="w-7 h-7">
-            <AvatarFallback className="text-xs bg-primary text-primary-foreground">MB</AvatarFallback>
+            <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+              {initials}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate text-sidebar-foreground">Martin Benoit</p>
-            <p className="text-xs text-sidebar-foreground/50 truncate">Admin</p>
+            <p className="text-sm font-medium truncate text-sidebar-foreground">
+              {profile?.full_name ?? "—"}
+            </p>
+            <p className="text-xs text-sidebar-foreground/50 truncate capitalize">
+              {profile?.role ?? "—"}
+            </p>
           </div>
         </div>
       </div>

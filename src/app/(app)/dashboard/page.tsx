@@ -1,12 +1,11 @@
 import { FolderKanban, ShieldAlert, Code2, AlertTriangle, CheckCircle } from "lucide-react";
-import { getMockProjectsWithUrgency, getMockDashboardStats } from "@/lib/mock-data";
+import { getProjects, getDashboardStats } from "@/services/projects";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatsCard } from "@/components/stats-card";
 import { ProjectCard } from "@/components/project-card";
 
-export default function DashboardPage() {
-  const stats = getMockDashboardStats();
-  const projects = getMockProjectsWithUrgency();
+export default async function DashboardPage() {
+  const [stats, projects] = await Promise.all([getDashboardStats(), getProjects()]);
   const priorityProjects = projects.filter((p) => ["expired", "critical", "warning"].includes(p.urgency));
   const otherProjects = projects.filter((p) => !["expired", "critical", "warning"].includes(p.urgency));
 
@@ -18,25 +17,9 @@ export default function DashboardPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        <StatsCard
-          label="Total projets"
-          value={stats.total}
-          icon={FolderKanban}
-          iconColor="text-blue-500"
-        />
-        <StatsCard
-          label="Maintenus"
-          value={stats.withMaintenance}
-          icon={CheckCircle}
-          iconColor="text-green-500"
-          description="Contrats actifs"
-        />
-        <StatsCard
-          label="En dev"
-          value={stats.inDev}
-          icon={Code2}
-          iconColor="text-purple-500"
-        />
+        <StatsCard label="Total projets" value={stats.total} icon={FolderKanban} iconColor="text-blue-500" />
+        <StatsCard label="Maintenus" value={stats.withMaintenance} icon={CheckCircle} iconColor="text-green-500" description="Contrats actifs" />
+        <StatsCard label="En dev" value={stats.inDev} icon={Code2} iconColor="text-purple-500" />
         <StatsCard
           label="Urgents"
           value={stats.critical + stats.expired}
@@ -62,13 +45,17 @@ export default function DashboardPage() {
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Tous les projets
+          {priorityProjects.length > 0 ? "Autres projets" : "Tous les projets"}
         </h2>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {otherProjects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
+        {otherProjects.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun projet pour le moment.</p>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {otherProjects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
