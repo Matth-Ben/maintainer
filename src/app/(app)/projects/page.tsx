@@ -1,11 +1,15 @@
-import { Plus } from "lucide-react";
 import { getProjects } from "@/services/projects";
+import { getAllProfiles, getCurrentProfile } from "@/services/profiles";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
 import { ProjectsClient } from "@/components/projects-client";
+import { NewProjectDialog } from "@/components/new-project-dialog";
 
 export default async function ProjectsPage() {
-  const projects = await getProjects();
+  const [projects, profiles, currentProfile] = await Promise.all([
+    getProjects(),
+    getAllProfiles(),
+    getCurrentProfile(),
+  ]);
 
   return (
     <div>
@@ -13,10 +17,10 @@ export default async function ProjectsPage() {
         title="Projets"
         description={`${projects.length} projet${projects.length > 1 ? "s" : ""} au total`}
         action={
-          <Button size="sm" className="gap-1.5">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nouveau projet</span>
-          </Button>
+          <NewProjectDialog
+            profiles={profiles}
+            currentProfileId={currentProfile?.id ?? ""}
+          />
         }
       />
       <ProjectsClient projects={projects} />
