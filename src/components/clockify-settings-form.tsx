@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useTransition } from "react";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { saveClockifyAction, disconnectClockifyAction, type ClockifyState } from "@/app/(app)/settings/integrations/actions";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,14 @@ const initialState: ClockifyState = { error: null };
 
 export function ClockifySettingsForm({ isConnected }: ClockifySettingsFormProps) {
   const [state, formAction, isPending] = useActionState(saveClockifyAction, initialState);
+  const [isDisconnecting, startDisconnect] = useTransition();
+
+  function handleDisconnect() {
+    startDisconnect(async () => {
+      const fd = new FormData();
+      await disconnectClockifyAction(fd);
+    });
+  }
 
   return (
     <div className="space-y-4">
@@ -65,11 +73,16 @@ export function ClockifySettingsForm({ isConnected }: ClockifySettingsFormProps)
             {isPending ? "Vérification…" : "Connecter Clockify"}
           </Button>
           {isConnected && (
-            <form action={disconnectClockifyAction}>
-              <Button type="submit" size="sm" variant="ghost" className="text-destructive hover:text-destructive">
-                Déconnecter
-              </Button>
-            </form>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="text-destructive hover:text-destructive"
+              disabled={isDisconnecting}
+              onClick={handleDisconnect}
+            >
+              {isDisconnecting ? "Déconnexion…" : "Déconnecter"}
+            </Button>
           )}
         </div>
       </form>

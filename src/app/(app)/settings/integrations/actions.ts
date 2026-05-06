@@ -49,13 +49,10 @@ export async function saveClockifyAction(_: ClockifyState, formData: FormData): 
   return { error: null, success: true };
 }
 
-export async function disconnectClockifyAction(): Promise<{ error: string | null }> {
+export async function disconnectClockifyAction(_formData: FormData): Promise<void> {
   const supabase = createAdminClient();
-  const { error } = await (supabase.from("settings") as any)
+  await (supabase.from("settings") as any)
     .delete()
     .in("key", ["CLOCKIFY_API_KEY", "CLOCKIFY_WORKSPACE_ID"]);
-
-  if (error) return { error: error.message };
   revalidatePath("/settings/integrations");
-  return { error: null };
 }
