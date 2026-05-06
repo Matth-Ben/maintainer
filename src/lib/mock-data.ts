@@ -37,7 +37,7 @@ export const MOCK_PROJECTS: Project[] = [
     domain: "boutique-delacroix.fr",
     client_contact: { name: "Édouard Delacroix", email: "e.delacroix@boutique-delacroix.fr", phone: "06 12 34 56 78" },
     dev_id: "prof-1",
-    clockify_project_id: "clk-proj-1",
+    clockify_projects: [{ id: "clk-proj-1", label: "Maintenance" }],
     created_at: subMonths(TODAY, 13).toISOString(),
   },
   {
@@ -52,7 +52,7 @@ export const MOCK_PROJECTS: Project[] = [
     domain: "cabinet-aurore.fr",
     client_contact: { name: "Dr. Sophie Aurore", email: "contact@cabinet-aurore.fr", phone: "04 78 90 12 34" },
     dev_id: "prof-2",
-    clockify_project_id: "clk-proj-2",
+    clockify_projects: [{ id: "clk-proj-2", label: "Maintenance" }],
     created_at: subMonths(TODAY, 12).toISOString(),
   },
   {
@@ -67,7 +67,7 @@ export const MOCK_PROJECTS: Project[] = [
     domain: "restaurant-le-gourmet.fr",
     client_contact: { name: "Pierre Fontaine", email: "pierre@legourmet.fr", phone: "06 45 67 89 01" },
     dev_id: "prof-1",
-    clockify_project_id: "clk-proj-3",
+    clockify_projects: [{ id: "clk-proj-3", label: "Maintenance" }],
     created_at: subMonths(TODAY, 11).toISOString(),
   },
   {
@@ -82,7 +82,7 @@ export const MOCK_PROJECTS: Project[] = [
     domain: "immobilier-dupont.fr",
     client_contact: { name: "Marie Dupont", email: "m.dupont@immo-dupont.fr", phone: "06 23 45 67 89" },
     dev_id: "prof-3",
-    clockify_project_id: "clk-proj-4",
+    clockify_projects: [{ id: "clk-proj-4", label: "Maintenance" }],
     created_at: subMonths(TODAY, 8).toISOString(),
   },
   {
@@ -97,7 +97,7 @@ export const MOCK_PROJECTS: Project[] = [
     domain: "sportclub69.fr",
     client_contact: { name: "Jean-Luc Bernard", email: "contact@sportclub69.fr", phone: "07 89 01 23 45" },
     dev_id: "prof-2",
-    clockify_project_id: null,
+    clockify_projects: [],
     created_at: subMonths(TODAY, 5).toISOString(),
   },
   {
@@ -112,7 +112,7 @@ export const MOCK_PROJECTS: Project[] = [
     domain: "techflow.io",
     client_contact: { name: "Alexandre Morel", email: "alex@techflow.io", phone: "06 56 78 90 12" },
     dev_id: "prof-1",
-    clockify_project_id: "clk-proj-6",
+    clockify_projects: [{ id: "clk-proj-6", label: "Développement" }],
     created_at: subMonths(TODAY, 2).toISOString(),
   },
   {
@@ -127,7 +127,7 @@ export const MOCK_PROJECTS: Project[] = [
     domain: "mairie-vaulx.fr",
     client_contact: { name: "Service Informatique", email: "si@mairie-vaulx.fr", phone: "04 72 02 64 30" },
     dev_id: "prof-3",
-    clockify_project_id: "clk-proj-7",
+    clockify_projects: [{ id: "clk-proj-7", label: "Développement" }],
     created_at: subMonths(TODAY, 20).toISOString(),
   },
   {
@@ -142,7 +142,7 @@ export const MOCK_PROJECTS: Project[] = [
     domain: "mode-chic.fr",
     client_contact: { name: "Isabelle Martin", email: "i.martin@mode-chic.fr", phone: "06 34 56 78 90" },
     dev_id: "prof-2",
-    clockify_project_id: "clk-proj-8",
+    clockify_projects: [{ id: "clk-proj-8", label: "Maintenance" }],
     created_at: subMonths(TODAY, 15).toISOString(),
   },
 ];
