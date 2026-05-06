@@ -1,12 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Key, Database } from "lucide-react";
+import { getClockifySettings } from "@/services/settings";
+import { ClockifySettingsForm } from "@/components/clockify-settings-form";
 
-export default function IntegrationsSettingsPage() {
+export default async function IntegrationsSettingsPage() {
   const hasSupabase = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const { apiKey } = await getClockifySettings();
+  const isClockifyConnected = !!apiKey;
 
   return (
     <div className="space-y-4">
@@ -15,22 +16,13 @@ export default function IntegrationsSettingsPage() {
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Key className="w-4 h-4 text-muted-foreground" />
             Clockify
-            <Badge variant="secondary" className="text-xs ml-auto">Non configuré</Badge>
           </CardTitle>
           <CardDescription className="text-xs">
             Clé API pour synchroniser les données de temps et de rentabilité.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="clockify_key" className="text-xs">X-Api-Key</Label>
-            <Input id="clockify_key" type="password" placeholder="••••••••••••••••••••••" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="workspace_id" className="text-xs">Workspace ID</Label>
-            <Input id="workspace_id" placeholder="ex: 64f2a1b3c9e8d00012345678" />
-          </div>
-          <Button size="sm" disabled>Connecter Clockify</Button>
+        <CardContent>
+          <ClockifySettingsForm isConnected={isClockifyConnected} />
         </CardContent>
       </Card>
 
