@@ -7,8 +7,9 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getProject } from "@/services/projects";
+import { getAllProfiles } from "@/services/profiles";
 import { MaintenanceBadge } from "@/components/maintenance-badge";
-import { ClockifyWidget } from "@/components/clockify-widget";
+import { EditProjectDialog } from "@/components/edit-project-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -22,7 +23,7 @@ interface PageProps {
 
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const project = await getProject(id);
+  const [project, profiles] = await Promise.all([getProject(id), getAllProfiles()]);
 
   if (!project) notFound();
 
@@ -62,6 +63,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <MaintenanceBadge urgency={project.urgency} daysRemaining={project.daysRemaining} />
+          <EditProjectDialog project={project} profiles={profiles} />
           <a
             href={`https://${project.domain}`}
             target="_blank"
