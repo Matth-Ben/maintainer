@@ -8,6 +8,11 @@ import type { Database } from "@/types/database";
 type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"];
 type ProjectUpdate = Database["public"]["Tables"]["projects"]["Update"];
 
+const clockifyLinkSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().default("Forfait"),
+});
+
 const projectSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),
   status: z.enum(["dev", "finished"]),
@@ -21,7 +26,7 @@ const projectSchema = z.object({
   client_email: z.string().optional().default(""),
   client_phone: z.string().optional().default(""),
   dev_id: z.string().uuid("Sélectionnez un développeur"),
-  clockify_project_id: z.string().optional().default(""),
+  clockify_projects: z.array(clockifyLinkSchema).default([]),
 });
 
 export type CreateProjectState = {
@@ -38,6 +43,7 @@ export async function createProjectAction(
   _: CreateProjectState,
   formData: FormData
 ): Promise<CreateProjectState> {
+  const rawClockify = formData.get("clockify_projects");
   const raw = {
     name: formData.get("name"),
     status: formData.get("status"),
@@ -51,7 +57,7 @@ export async function createProjectAction(
     client_email: formData.get("client_email") || "",
     client_phone: formData.get("client_phone") || "",
     dev_id: formData.get("dev_id"),
-    clockify_project_id: formData.get("clockify_project_id") || "",
+    clockify_projects: rawClockify ? JSON.parse(rawClockify as string) : [],
   };
 
   const parsed = projectSchema.safeParse(raw);
@@ -72,7 +78,7 @@ export async function createProjectAction(
     has_maintenance: rest.has_maintenance,
     maint_end_date: rest.has_maintenance ? (rest.maint_end_date || null) : null,
     dev_id: rest.dev_id,
-    clockify_project_id: rest.clockify_project_id || null,
+    clockify_projects: rest.clockify_projects,
     client_contact: { name: client_name, email: client_email, phone: client_phone },
   };
   const { error } = await (supabase.from("projects") as any).insert(payload);
@@ -90,6 +96,7 @@ export async function updateProjectAction(
   _: UpdateProjectState,
   formData: FormData
 ): Promise<UpdateProjectState> {
+  const rawClockify = formData.get("clockify_projects");
   const raw = {
     name: formData.get("name"),
     status: formData.get("status"),
@@ -103,7 +110,7 @@ export async function updateProjectAction(
     client_email: formData.get("client_email") || "",
     client_phone: formData.get("client_phone") || "",
     dev_id: formData.get("dev_id"),
-    clockify_project_id: formData.get("clockify_project_id") || "",
+    clockify_projects: rawClockify ? JSON.parse(rawClockify as string) : [],
   };
 
   const parsed = projectSchema.safeParse(raw);
@@ -124,7 +131,7 @@ export async function updateProjectAction(
     has_maintenance: rest.has_maintenance,
     maint_end_date: rest.has_maintenance ? (rest.maint_end_date || null) : null,
     dev_id: rest.dev_id,
-    clockify_project_id: rest.clockify_project_id || null,
+    clockify_projects: rest.clockify_projects,
     client_contact: { name: client_name, email: client_email, phone: client_phone },
   };
   const { error } = await (supabase.from("projects") as any).update(payload).eq("id", projectId);

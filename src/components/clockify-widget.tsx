@@ -5,9 +5,10 @@ import type { ClockifyProject } from "@/types";
 
 interface ClockifyWidgetProps {
   data: ClockifyProject;
+  label: string;
 }
 
-export function ClockifyWidget({ data }: ClockifyWidgetProps) {
+export function ClockifyWidget({ data, label }: ClockifyWidgetProps) {
   const estimateStr = data.timeEstimate?.estimate
     ? data.estimate.estimate
     : "PT0H";
@@ -28,7 +29,7 @@ export function ClockifyWidget({ data }: ClockifyWidgetProps) {
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Clock className="w-4 h-4 text-muted-foreground" />
-          Suivi Clockify
+          {label}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

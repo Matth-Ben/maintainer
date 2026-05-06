@@ -35,7 +35,7 @@ export interface Database {
           domain: string;
           client_contact: { name: string; email: string; phone: string };
           dev_id: string;
-          clockify_project_id: string | null;
+          clockify_projects: Array<{ id: string; label: string }>;
           created_at: string;
         };
         Insert: {
@@ -50,7 +50,7 @@ export interface Database {
           domain?: string;
           client_contact?: { name: string; email: string; phone: string };
           dev_id: string;
-          clockify_project_id?: string | null;
+          clockify_projects?: Array<{ id: string; label: string }>;
           created_at?: string;
         };
         Update: {
@@ -65,7 +65,7 @@ export interface Database {
           domain?: string;
           client_contact?: { name: string; email: string; phone: string };
           dev_id?: string;
-          clockify_project_id?: string | null;
+          clockify_projects?: Array<{ id: string; label: string }>;
         };
       };
     };

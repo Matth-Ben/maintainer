@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getProject } from "@/services/projects";
 import { getAllProfiles } from "@/services/profiles";
-import { getClockifyProjectData } from "@/services/clockify";
+import { getClockifyProjectsData } from "@/services/clockify";
 import { MaintenanceBadge } from "@/components/maintenance-badge";
 import { EditProjectDialog } from "@/components/edit-project-dialog";
 import { ClockifyWidget } from "@/components/clockify-widget";
@@ -26,7 +26,7 @@ interface PageProps {
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
   const [project, profiles] = await Promise.all([getProject(id), getAllProfiles()]);
-  const clockify = project ? await getClockifyProjectData(project.clockify_project_id) : { status: "not_linked" as const };
+  const clockifyResults = project ? await getClockifyProjectsData(project.clockify_projects) : [];
 
   if (!project) notFound();
 
@@ -155,33 +155,36 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </div>
 
         <div className="space-y-4">
-          {clockify.status === "ok" ? (
-            <ClockifyWidget data={clockify.data} />
-          ) : (
-            <Card>
-              <CardContent className="p-5 text-center">
-                <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                {clockify.status === "not_linked" && (
-                  <>
-                    <p className="text-sm text-muted-foreground">Aucun projet Clockify lié</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">Ajoutez un Clockify ID dans "Modifier"</p>
-                  </>
-                )}
-                {clockify.status === "not_configured" && (
-                  <>
-                    <p className="text-sm text-muted-foreground">Clockify non configuré</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">Renseignez vos clés dans Paramètres → Intégrations</p>
-                  </>
-                )}
-                {clockify.status === "error" && (
-                  <>
-                    <p className="text-sm text-muted-foreground">Erreur Clockify</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">{clockify.message}</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {clockifyResults.map((result, i) => {
+            if (result.status === "ok") {
+              return <ClockifyWidget key={i} data={result.data} label={result.link.label} />;
+            }
+            return (
+              <Card key={i}>
+                <CardContent className="p-5 text-center">
+                  <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                  {result.status === "no_links" && (
+                    <>
+                      <p className="text-sm text-muted-foreground">Aucun forfait Clockify lié</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">Ajoutez des forfaits dans "Modifier"</p>
+                    </>
+                  )}
+                  {result.status === "not_configured" && (
+                    <>
+                      <p className="text-sm text-muted-foreground">Clockify non configuré</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">Renseignez vos clés dans Paramètres → Intégrations</p>
+                    </>
+                  )}
+                  {result.status === "error" && (
+                    <>
+                      <p className="text-sm text-muted-foreground">Erreur Clockify</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">{result.message}</p>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
 
           <Card>
             <CardHeader className="pb-3">

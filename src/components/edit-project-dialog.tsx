@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { ClockifyLinksField } from "@/components/clockify-links-field";
 import type { Profile, ProjectWithUrgency } from "@/types";
 
 interface EditProjectDialogProps {
@@ -170,14 +171,10 @@ export function EditProjectDialog({ project, profiles }: EditProjectDialogProps)
               </NativeSelect>
             </Field>
 
-            <Field label="Clockify Project ID" htmlFor="clockify_project_id">
-              <Input
-                id="clockify_project_id"
-                name="clockify_project_id"
-                defaultValue={project.clockify_project_id ?? ""}
-                placeholder="64f2a1b3c9e8d00012345678"
-              />
-            </Field>
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium">Forfaits Clockify</p>
+              <ClockifyLinksField defaultValue={project.clockify_projects} />
+            </div>
           </section>
 
           {state.error && (

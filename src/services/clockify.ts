@@ -1,50 +1,66 @@
 import { getClockifySettings } from "@/services/settings";
-import type { ClockifyProject } from "@/types";
+import type { ClockifyProject, ClockifyLink } from "@/types";
 
 const BASE_URL = "https://api.clockify.me/api/v1";
 
 export type ClockifyFetchResult =
-  | { status: "ok"; data: ClockifyProject }
+  | { status: "ok"; data: ClockifyProject; link: ClockifyLink }
   | { status: "not_configured" }
-  | { status: "not_linked" }
-  | { status: "error"; message: string };
+  | { status: "no_links" }
+  | { status: "error"; message: string; link: ClockifyLink };
 
-export async function getClockifyProjectData(
-  clockifyProjectId: string | null
+async function fetchOneProject(
+  apiKey: string,
+  workspaceId: string,
+  link: ClockifyLink
 ): Promise<ClockifyFetchResult> {
-  if (!clockifyProjectId) return { status: "not_linked" };
-
-  const { apiKey, workspaceId } = await getClockifySettings();
-  if (!apiKey || !workspaceId) return { status: "not_configured" };
-
   try {
     const res = await fetch(
-      `${BASE_URL}/workspaces/${workspaceId}/projects/${clockifyProjectId}`,
+      `${BASE_URL}/workspaces/${workspaceId}/projects/${link.id}`,
       {
         headers: { "X-Api-Key": apiKey },
-        next: { revalidate: 300 }, // cache 5 minutes
+        next: { revalidate: 300 },
       }
     );
 
     if (!res.ok) {
-      if (res.status === 404) return { status: "error", message: "Projet Clockify introuvable. Vérifiez l'ID dans la fiche projet." };
-      return { status: "error", message: `Erreur API Clockify (${res.status})` };
+      const msg =
+        res.status === 404
+          ? `Projet "${link.label}" introuvable sur Clockify (ID invalide ?)`
+          : `Erreur API Clockify (${res.status}) pour "${link.label}"`;
+      return { status: "error", message: msg, link };
     }
 
     const raw = await res.json();
-
     const data: ClockifyProject = {
       id: raw.id,
       name: raw.name,
       estimate: raw.estimate ?? { estimate: "PT0H", type: "AUTO" },
-      timeEstimate: raw.timeEstimate ?? { estimate: 0, type: "AUTO", resetOption: null, active: false, includeNonBillable: true },
+      timeEstimate: raw.timeEstimate ?? {
+        estimate: 0,
+        type: "AUTO",
+        resetOption: null,
+        active: false,
+        includeNonBillable: true,
+      },
       duration: raw.duration ?? "PT0H",
       budgetEstimate: raw.budgetEstimate ?? null,
       hourlyRate: raw.hourlyRate ?? null,
     };
 
-    return { status: "ok", data };
+    return { status: "ok", data, link };
   } catch {
-    return { status: "error", message: "Impossible de joindre l'API Clockify." };
+    return { status: "error", message: `Impossible de joindre Clockify pour "${link.label}".`, link };
   }
+}
+
+export async function getClockifyProjectsData(
+  links: ClockifyLink[]
+): Promise<ClockifyFetchResult[]> {
+  if (!links.length) return [{ status: "no_links" }];
+
+  const { apiKey, workspaceId } = await getClockifySettings();
+  if (!apiKey || !workspaceId) return [{ status: "not_configured" }];
+
+  return Promise.all(links.map((link) => fetchOneProject(apiKey, workspaceId, link)));
 }

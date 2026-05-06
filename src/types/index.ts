@@ -14,6 +14,11 @@ export interface ClientContact {
   phone: string;
 }
 
+export interface ClockifyLink {
+  id: string;
+  label: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -26,7 +31,7 @@ export interface Project {
   domain: string;
   client_contact: ClientContact;
   dev_id: string;
-  clockify_project_id: string | null;
+  clockify_projects: ClockifyLink[];
   created_at: string;
 }
 
