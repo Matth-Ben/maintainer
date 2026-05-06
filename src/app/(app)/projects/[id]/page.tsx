@@ -8,11 +8,13 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getProject } from "@/services/projects";
 import { getAllProfiles } from "@/services/profiles";
+import { getClockifyProjectData } from "@/services/clockify";
 import { MaintenanceBadge } from "@/components/maintenance-badge";
 import { EditProjectDialog } from "@/components/edit-project-dialog";
+import { ClockifyWidget } from "@/components/clockify-widget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -24,6 +26,7 @@ interface PageProps {
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
   const [project, profiles] = await Promise.all([getProject(id), getAllProfiles()]);
+  const clockify = project ? await getClockifyProjectData(project.clockify_project_id) : { status: "not_linked" as const };
 
   if (!project) notFound();
 
@@ -152,19 +155,30 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </div>
 
         <div className="space-y-4">
-          {project.clockify_project_id ? (
-            <Card>
-              <CardContent className="p-5 text-center">
-                <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Clockify bientôt disponible</p>
-              </CardContent>
-            </Card>
+          {clockify.status === "ok" ? (
+            <ClockifyWidget data={clockify.data} />
           ) : (
             <Card>
               <CardContent className="p-5 text-center">
                 <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Aucun projet Clockify lié</p>
-                <Button variant="outline" size="sm" className="mt-3">Lier un projet</Button>
+                {clockify.status === "not_linked" && (
+                  <>
+                    <p className="text-sm text-muted-foreground">Aucun projet Clockify lié</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Ajoutez un Clockify ID dans "Modifier"</p>
+                  </>
+                )}
+                {clockify.status === "not_configured" && (
+                  <>
+                    <p className="text-sm text-muted-foreground">Clockify non configuré</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Renseignez vos clés dans Paramètres → Intégrations</p>
+                  </>
+                )}
+                {clockify.status === "error" && (
+                  <>
+                    <p className="text-sm text-muted-foreground">Erreur Clockify</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">{clockify.message}</p>
+                  </>
+                )}
               </CardContent>
             </Card>
           )}
